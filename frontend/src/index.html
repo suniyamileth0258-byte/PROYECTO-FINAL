@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Inconformidades</title>
+  <link rel="stylesheet" href="index.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <div class="header-left">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h1>Sistema de Inconformidades</h1>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <span id="totalPendientes">0</span> Pendientes
+        </div>
+        <div class="stat">
+          <span id="totalEnProceso">0</span> En Proceso
+        </div>
+        <div class="stat">
+          <span id="totalResueltas">0</span> Resueltas
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="inconformidades">
+        <i class="fas fa-list"></i> Inconformidades
+      </button>
+      <button class="tab" data-tab="empleados">
+        <i class="fas fa-users"></i> Empleados
+      </button>
+      <button class="tab" data-tab="reportes">
+        <i class="fas fa-chart-bar"></i> Reportes
+      </button>
+    </nav>
+
+    <main>
+      <!-- Tab Inconformidades -->
+      <div id="inconformidades" class="tab-content active">
+        <section class="form-section">
+          <h2><i class="fas fa-plus"></i> Nueva Inconformidad</h2>
+          <form id="formInconformidad">
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-user"></i> Empleado</label>
+                <select id="empleadoSelect" required>
+                  <option value="">Selecciona empleado</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-tag"></i> Tipo</label>
+                <select id="tipoSelect" required>
+                  <option value="">Selecciona tipo</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-heading"></i> Título</label>
+                <input type="text" id="tituloInconformidad" placeholder="Título" required>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-flag"></i> Prioridad</label>
+                <select id="prioridadSelect">
+                  <option value="baja">Baja</option>
+                  <option value="media" selected>Media</option>
+                  <option value="alta">Alta</option>
+                  <option value="critica">Crítica</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label><i class="fas fa-align-left"></i> Descripción</label>
+              <textarea id="descripcionInconformidad" rows="4" placeholder="Describe la inconformidad..." required></textarea>
+            </div>
+            <button type="submit"><i class="fas fa-save"></i> Registrar Inconformidad</button>
+          </form>
+        </section>
+
+        <section class="list-section">
+          <h2><i class="fas fa-list"></i> Lista de Inconformidades</h2>
+          <div class="filtros">
+            <select id="filtroEstado">
+              <option value="todos">Todos los estados</option>
+              <option value="pendiente">Pendiente</option>
+              <option value="en_proceso">En Proceso</option>
+              <option value="resuelta">Resuelta</option>
+              <option value="cerrada">Cerrada</option>
+            </select>
+          </div>
+          <div id="listaInconformidades" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Cargando inconformidades...
+          </div>
+        </section>
+      </div>
+
+      <!-- Tab Empleados -->
+      <div id="empleados" class="tab-content">
+        <section class="form-section">
+          <h2><i class="fas fa-user-plus"></i> Nuevo Empleado</h2>
+          <form id="formEmpleado">
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-user"></i> Nombre</label>
+                <input type="text" id="nombreEmpleado" placeholder="Nombre completo" required>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Email</label>
+                <input type="email" id="emailEmpleado" placeholder="email@empresa.com" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-building"></i> Departamento</label>
+                <input type="text" id="departamentoEmpleado" placeholder="Departamento" required>
+              </div>
+              <div class="form-group">
+                <label><i class="fas fa-briefcase"></i> Puesto</label>
+                <input type="text" id="puestoEmpleado" placeholder="Puesto" required>
+              </div>
+            </div>
+            <button type="submit"><i class="fas fa-save"></i> Registrar Empleado</button>
+          </form>
+        </section>
+
+        <section class="list-section">
+          <h2><i class="fas fa-list"></i> Lista de Empleados</h2>
+          <div id="listaEmpleados" class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Cargando empleados...
+          </div>
+        </section>
+      </div>
+
+      <!-- Tab Reportes -->
+      <div id="reportes" class="tab-content">
+        <section class="form-section">
+          <h2><i class="fas fa-chart-pie"></i> Reportes y Estadísticas</h2>
+          
+          <div class="filtros-reportes">
+            <select id="periodoReportes">
+              <option value="semana">Última semana</option>
+              <option value="mes" selected>Último mes</option>
+              <option value="trimestre">Último trimestre</option>
+              <option value="año">Último año</option>
+              <option value="todo">Todo el historial</option>
+            </select>
+            <button onclick="actualizarReportes()" class="btn-actualizar">
+              <i class="fas fa-sync-alt"></i> Actualizar
+            </button>
+          </div>
+
+          <div class="reportes-container">
+            <div class="reporte-card">
+              <h3><i class="fas fa-chart-pie"></i> Por Tipo</h3>
+              <div class="chart-container">
+                <canvas id="chartTipos"></canvas>
+              </div>
+              <div id="statsTipos" class="stats-mini"></div>
+            </div>
+            
+            <div class="reporte-card">
+              <h3><i class="fas fa-chart-bar"></i> Por Departamento</h3>
+              <div class="chart-container">
+                <canvas id="chartDepartamentos"></canvas>
+              </div>
+              <div id="statsDepartamentos" class="stats-mini"></div>
+            </div>
+            
+            <div class="reporte-card">
+              <h3><i class="fas fa-chart-line"></i> Evolución</h3>
+              <div class="chart-container">
+                <canvas id="chartEvolucion"></canvas>
+              </div>
+              <div id="statsEvolucion" class="stats-mini"></div>
+            </div>
+
+            <div class="reporte-card reporte-resumen">
+              <h3><i class="fas fa-clipboard-list"></i> Resumen</h3>
+              <div class="resumen-grid">
+                <div class="resumen-item">
+                  <span class="resumen-label">Total</span>
+                  <span class="resumen-valor" id="resumenTotal">0</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="resumen-label">Pendientes</span>
+                  <span class="resumen-valor" id="resumenPendientes">0</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="resumen-label">En Proceso</span>
+                  <span class="resumen-valor" id="resumenProceso">0</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="resumen-label">Resueltas</span>
+                  <span class="resumen-valor" id="resumenResueltas">0</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="resumen-label">Cerradas</span>
+                  <span class="resumen-valor" id="resumenCerradas">0</span>
+                </div>
+                <div class="resumen-item">
+                  <span class="resumen-label">Tiempo prom.</span>
+                  <span class="resumen-valor" id="resumenTiempo">0d</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Detalle -->
+  <div id="modalDetalle" style="display: none;">
+    <div class="modal-container modal-large">
+      <div class="modal-header">
+        <h2><i class="fas fa-eye"></i> Detalle de Inconformidad</h2>
+        <button type="button" class="modal-close" onclick="cerrarModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <div class="modal-body">
+        <div id="detalleContenido"></div>
+        
+        <div class="cambio-estado-section">
+          <h3><i class="fas fa-sync-alt"></i> Cambiar Estado</h3>
+          <div class="cambio-estado-form">
+            <select id="cambioEstadoSelect">
+              <option value="pendiente">Pendiente</option>
+              <option value="en_proceso">En Proceso</option>
+              <option value="resuelta">Resuelta</option>
+              <option value="cerrada">Cerrada</option>
+            </select>
+            <textarea id="cambioEstadoComentario" placeholder="Comentario (opcional)..." rows="2"></textarea>
+            <select id="cambioEstadoEmpleado">
+              <option value="">Selecciona empleado</option>
+            </select>
+            <button onclick="cambiarEstadoInconformidad()" class="btn-estado">
+              <i class="fas fa-check-circle"></i> Actualizar Estado
+            </button>
+          </div>
+        </div>
+        
+        <div class="seguimiento-section">
+          <h3><i class="fas fa-history"></i> Historial</h3>
+          <div id="listaSeguimiento"></div>
+          
+          <div class="nuevo-seguimiento">
+            <h4>Agregar comentario</h4>
+            <select id="seguimientoAccion">
+              <option value="COMENTARIO">Comentario</option>
+              <option value="AVANCE">Avance</option>
+            </select>
+            <select id="seguimientoEmpleado">
+              <option value="">Selecciona empleado</option>
+            </select>
+            <textarea id="seguimientoComentario" placeholder="Escribe tu comentario..." rows="3"></textarea>
+            <button onclick="agregarSeguimiento()" class="btn-primary">
+              <i class="fas fa-plus"></i> Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="cerrarModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
